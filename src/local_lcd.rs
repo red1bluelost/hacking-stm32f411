@@ -1,68 +1,40 @@
-use stm32f4xx_hal as hal;
-use hal::hal::digital::v2::OutputPin;
+use hal::gpio::ErasedPin;
+use hal::gpio::Output;
 use hal::prelude::*;
 use hal::timer::DelayUs;
 use hal::timer::Instance;
+use stm32f4xx_hal as hal;
 
-pub struct LcdHardware<
-    TIM: Instance,
-    RS: OutputPin,
-    RW: OutputPin,
-    E: OutputPin,
-    D4: OutputPin,
-    D5: OutputPin,
-    D6: OutputPin,
-    D7: OutputPin,
-> {
+pub struct LcdHardware<TIM: Instance> {
     pub delay: DelayUs<TIM>,
-    pub rs: RS,
-    pub rw: RW,
-    pub e: E,
-    pub data4: D4,
-    pub data5: D5,
-    pub data6: D6,
-    pub data7: D7,
+    pub rs: ErasedPin<Output>,
+    pub rw: ErasedPin<Output>,
+    pub e: ErasedPin<Output>,
+    pub data4: ErasedPin<Output>,
+    pub data5: ErasedPin<Output>,
+    pub data6: ErasedPin<Output>,
+    pub data7: ErasedPin<Output>,
 }
 
-impl<
-        TIM: Instance,
-        RS: OutputPin,
-        RW: OutputPin,
-        E: OutputPin,
-        D4: OutputPin,
-        D5: OutputPin,
-        D6: OutputPin,
-        D7: OutputPin,
-    > lcd::Hardware for LcdHardware<TIM, RS, RW, E, D4, D5, D6, D7>
-{
+impl<TIM: Instance> lcd::Hardware for LcdHardware<TIM> {
     fn rs(&mut self, bit: bool) {
-        self.rs.set_state(bit.into()).ok();
+        self.rs.set_state(bit.into());
     }
 
     fn enable(&mut self, bit: bool) {
-        self.e.set_state(bit.into()).ok();
+        self.e.set_state(bit.into());
     }
 
     fn data(&mut self, data: u8) {
         let b = |n| (data & (1u8 << n) != 0u8).into();
-        self.data4.set_state(b(0)).ok();
-        self.data5.set_state(b(1)).ok();
-        self.data6.set_state(b(2)).ok();
-        self.data7.set_state(b(3)).ok();
+        self.data4.set_state(b(0));
+        self.data5.set_state(b(1));
+        self.data6.set_state(b(2));
+        self.data7.set_state(b(3));
     }
 }
 
-impl<
-        TIM: Instance,
-        RS: OutputPin,
-        RW: OutputPin,
-        E: OutputPin,
-        D4: OutputPin,
-        D5: OutputPin,
-        D6: OutputPin,
-        D7: OutputPin,
-    > lcd::Delay for LcdHardware<TIM, RS, RW, E, D4, D5, D6, D7>
-{
+impl<TIM: Instance> lcd::Delay for LcdHardware<TIM> {
     fn delay_us(&mut self, delay_usec: u32) {
         self.delay.delay(delay_usec.micros());
     }
